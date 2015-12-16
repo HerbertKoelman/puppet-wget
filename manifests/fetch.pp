@@ -118,10 +118,19 @@ define wget::fetch (
     }
   }
 
-  $output_option = $cache_dir ? {
-    undef   => " --output-document=\"${_destination}\"",
-    default => " -N -P \"${cache_dir}\"",
+  if ($cache_dir)  {
+    $output_option = " -N -P \"${cache_dir}\""
+    $noop          = false
+  } else {
+    $noop          = undef
+    $output_option = " --output-document=\"${destination}\""
   }
+
+#  $output_option = $cache_dir ? {
+#    undef   => " --output-document=\"${destination}\"",
+#    default => " -N -P \"${cache_dir}\"",
+#  }
+
 
   # again, not using stdlib.concat, concatanate array of headers into a single string
   if $headers != undef {
@@ -160,6 +169,7 @@ define wget::fetch (
     timeout     => $timeout,
     unless      => $unless_test,
     environment => $environment,
+    noop        => $noop,
     user        => $exec_user,
     path        => $exec_path,
     require     => Class['wget'],
